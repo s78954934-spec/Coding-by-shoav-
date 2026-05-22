@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding by Shoav</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#060608;--card:#0f0f14;--card2:#161620;--border:#1e1e2e;--border2:#2a2a3f;--accent:#6366f1;--accent2:#22d3ee;--green:#4ade80;--yellow:#fbbf24;--red:#f87171;--orange:#fb923c;--pink:#f472b6;--text:#e2e8f0;--muted:#4b5563;--muted2:#6b7280;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(99,102,241,0.07) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(34,211,238,0.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.topbar{position:sticky;top:0;z-index:200;background:rgba(6,6,8,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;}
+.topbar-info{flex:1;}
+.topbar-title{font-size:0.95rem;font-weight:800;}
+.topbar-sub{font-size:0.68rem;color:var(--muted2);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.user-btn{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Outfit',sans-serif;font-size:0.78rem;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;}
+.user-avatar-placeholder{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;}
+.progress-strip{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;background:var(--border);}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.5s ease;width:0%;}
+.page{display:none;animation:fadeUp 0.3s ease;position:relative;z-index:1;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.login-page{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
+.login-logo{width:70px;height:70px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;color:#fff;margin:0 auto 20px;}
+.login-title{font-size:1.8rem;font-weight:900;margin-bottom:8px;}
+.login-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.login-sub{color:var(--muted2);font-size:0.9rem;margin-bottom:32px;line-height:1.6;}
+.google-btn{display:flex;align-items:center;gap:12px;background:#fff;border:none;border-radius:12px;padding:14px 24px;font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:700;color:#1a1a1a;cursor:pointer;transition:all 0.2s;margin-bottom:16px;width:100%;max-width:300px;justify-content:center;}
+.google-btn:active{transform:scale(0.97);}
+.login-note{font-size:0.75rem;color:var(--muted);margin-top:16px;}
+.setup-page{padding:24px 18px;max-width:480px;margin:0 auto;}
+.setup-step{display:none;}
+.setup-step.active{display:block;animation:fadeUp 0.3s ease;}
+.setup-title{font-size:1.4rem;font-weight:900;margin-bottom:6px;}
+.setup-sub{color:var(--muted2);font-size:0.85rem;margin-bottom:24px;}
+.setup-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;cursor:pointer;transition:all 0.2s;}
+.setup-card:hover,.setup-card.selected{border-color:var(--accent);background:rgba(99,102,241,0.08);}
+.setup-card-title{font-size:1rem;font-weight:700;margin-bottom:4px;}
+.setup-card-desc{font-size:0.8rem;color:var(--muted2);}
+.setup-next{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:800;color:#fff;cursor:pointer;margin-top:8px;}
+.setup-next:active{transform:scale(0.97);}
+.setup-dots{display:flex;gap:6px;justify-content:center;margin-bottom:24px;}
+.setup-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);}
+.setup-dot.active{background:var(--accent);width:20px;border-radius:4px;}
+.home-header{padding:24px 18px 16px;}
+.home-greeting{font-size:1.5rem;font-weight:900;margin-bottom:4px;}
+.home-greeting span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.home-sub{color:var(--muted2);font-size:0.85rem;}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 16px;}
+.lang-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 12px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;text-align:center;}
+.lang-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.lang-card.html::before{background:#f97316;}.lang-card.css::before{background:#3b82f6;}.lang-card.js::before{background:#fbbf24;}.lang-card.python::before{background:#4ade80;}.lang-card.cpp::before{background:#f472b6;}.lang-card.java::before{background:#f97316;}.lang-card.sql::before{background:#22d3ee;}.lang-card.bash::before{background:#a78bfa;}.lang-card.logic::before{background:linear-gradient(90deg,#f97316,#6366f1);}
+.lang-card:hover{transform:translateY(-2px);border-color:var(--border2);}.lang-card:active{transform:scale(0.97);}
+.lang-icon{font-size:1.8rem;margin-bottom:8px;}.lang-name{font-size:0.88rem;font-weight:800;margin-bottom:3px;}.lang-desc{font-size:0.68rem;color:var(--muted2);}
+.lang-pw{margin-top:8px;height:3px;background:var(--border);border-radius:3px;overflow:hidden;}
+.lang-pf{height:100%;border-radius:3px;transition:width 0.5s;}
+.html .lang-pf{background:#f97316;}.css .lang-pf{background:#3b82f6;}.js .lang-pf{background:#fbbf24;}.python .lang-pf{background:#4ade80;}.cpp .lang-pf{background:#f472b6;}.java .lang-pf{background:#f97316;}.sql .lang-pf{background:#22d3ee;}.bash .lang-pf{background:#a78bfa;}.logic .lang-pf{background:#6366f1;}
+.lang-card.test{grid-column:span 2;}.lang-card.test::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.lang-card.ai-t{grid-column:span 2;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(34,211,238,0.1));border-color:rgba(99,102,241,0.3);}.lang-card.ai-t::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.done-b{position:absolute;top:8px;right:8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:var(--green);border-radius:6px;font-size:0.6rem;font-weight:700;padding:2px 6px;}
+.lesson-topbar{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.back-btn{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted2);font-family:'Outfit',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;}
+.ltb{flex:1;}.ltb h2{font-size:0.95rem;font-weight:800;}.ltb span{font-size:0.68rem;color:var(--muted2);}
+.lc{padding:16px;}
+.sb{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;margin-bottom:6px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.st{font-size:1.4rem;font-weight:900;line-height:1.2;margin-bottom:14px;}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.ic .lb{font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.ic p{font-size:0.86rem;line-height:1.75;color:#cbd5e1;}
+.ic p strong{color:var(--accent2);}.ic p em{color:var(--yellow);font-style:normal;}
+.tip{border-left:3px solid var(--accent2);background:rgba(34,211,238,0.06);border-radius:0 10px 10px 0;padding:10px 12px;margin:10px 0;font-size:0.82rem;color:#7dd3fc;line-height:1.6;}
+.warn{border-left:3px solid var(--yellow);background:rgba(251,191,36,0.06);border-radius:0 10px 10px 0;padding:10px 12px;margin:10px 0;font-size:0.82rem;color:#fde68a;line-height:1.6;}
+.cw{background:#07070c;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:10px 0;}
+.ch{background:var(--card2);border-bottom:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;}
+.ch span{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);}
+.cb{padding:12px;font-family:'JetBrains Mono',monospace;font-size:0.74rem;line-height:1.9;overflow-x:auto;color:#e2e8f0;}
+.kw{color:#c084fc;}.fn{color:#60a5fa;}.str{color:#4ade80;}.num{color:#fb923c;}.cm{color:#374151;}.tg{color:#f97316;}.at{color:#a78bfa;}.vl{color:#34d399;}
+.ew{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.eh{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.el{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);}
+.rb{background:var(--green);color:#000;border:none;border-radius:7px;padding:5px 14px;font-family:'Outfit',sans-serif;font-size:0.78rem;font-weight:800;cursor:pointer;}
+.rb:active{transform:scale(0.95);}
+textarea.ce{width:100%;background:#07070c;border:none;outline:none;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.74rem;line-height:1.8;padding:12px;resize:vertical;min-height:120px;}
+.pf{border-top:1px solid var(--border);background:white;min-height:70px;}
+.pf iframe{width:100%;border:none;min-height:70px;display:block;}
+.ob{border-top:1px solid var(--border);background:#07070c;padding:10px 12px;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:0.74rem;color:var(--green);line-height:1.7;white-space:pre-wrap;}
+.qw{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.qn{font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:1px;margin-bottom:5px;}
+.qq{font-size:0.9rem;font-weight:700;margin-bottom:12px;line-height:1.5;}
+.qo{display:flex;flex-direction:column;gap:7px;}
+.ob2{background:#07070c;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:0.82rem;color:var(--text);cursor:pointer;text-align:left;transition:all 0.2s;}
+.ob2:hover:not(:disabled){border-color:var(--accent);}
+.ob2.correct{border-color:var(--green);background:rgba(74,222,128,0.08);color:var(--green);}
+.ob2.wrong{border-color:var(--red);background:rgba(248,113,113,0.08);color:var(--red);}
+.qf{margin-top:8px;padding:9px 11px;border-radius:7px;font-size:0.8rem;display:none;}
+.qf.show{display:block;}.qf.ok{background:rgba(74,222,128,0.08);color:var(--green);}.qf.fail{background:rgba(248,113,113,0.08);color:var(--red);}
+.diff{display:inline-block;padding:2px 7px;border-radius:20px;font-size:0.62rem;font-weight:700;margin-left:6px;vertical-align:middle;}
+.diff.easy{background:rgba(74,222,128,0.15);color:var(--green);}.diff.medium{background:rgba(251,191,36,0.15);color:var(--yellow);}.diff.hard{background:rgba(248,113,113,0.15);color:var(--red);}.diff.extreme{background:rgba(248,0,0,0.2);color:#ff4444;}
+.ln{display:flex;gap:10px;padding:16px;position:sticky;bottom:0;background:rgba(6,6,8,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);}
+.np{flex:0 0 auto;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:12px 16px;font-family:'Outfit',sans-serif;font-size:0.82rem;font-weight:700;color:var(--muted2);cursor:pointer;}
+.nn{flex:1;border:none;border-radius:11px;padding:12px;font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:800;color:#fff;cursor:pointer;transition:all 0.2s;}
+.nn:active{transform:scale(0.97);}
+.th{padding:28px 18px 16px;text-align:center;}.th h1{font-size:1.6rem;font-weight:900;margin-bottom:6px;}.th p{color:var(--muted2);font-size:0.85rem;line-height:1.6;}
+.ts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 16px;}
+.sb2{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 8px;text-align:center;}
+.sn{font-size:1.3rem;font-weight:900;}.sl{font-size:0.65rem;color:var(--muted2);margin-top:2px;}
+.tq{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin:0 18px 12px;}
+.tm{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tn{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);}
+.tl{font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:5px;}
+.tqq{font-size:0.88rem;font-weight:700;line-height:1.5;margin-bottom:12px;}
+.to{display:flex;flex-direction:column;gap:7px;}
+.to2{background:#07070c;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:0.82rem;color:var(--text);cursor:pointer;text-align:left;transition:all 0.2s;}
+.to2:hover{border-color:var(--accent);}.to2.sel{border-color:var(--accent);background:rgba(99,102,241,0.1);color:#c7d2fe;}
+.tsw{padding:18px;}
+.sub{width:100%;padding:15px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:13px;font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:800;color:#fff;cursor:pointer;}
+.sub:active{transform:scale(0.98);}
+.cp{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;padding:40px 18px;text-align:center;}
+.tr{width:130px;height:130px;position:relative;margin-bottom:24px;}
+.tr svg{transform:rotate(-90deg);}
+.tr circle.bg{fill:none;stroke:var(--border);stroke-width:8;}
+.tr circle.fi{fill:none;stroke:url(#tg);stroke-width:8;stroke-linecap:round;stroke-dasharray:339;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;}
+.tc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ts2{font-size:2rem;font-weight:900;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.tl2{font-size:0.6rem;color:var(--muted2);margin-top:2px;}
+.ct{font-size:1.3rem;font-weight:800;margin-bottom:6px;}.cs{color:var(--muted2);font-size:0.85rem;}
+.rp{padding:20px 18px;}
+.rh{text-align:center;margin-bottom:20px;}
+.re{font-size:3rem;margin-bottom:10px;}
+.rs{font-size:2.8rem;font-weight:900;font-family:'JetBrains Mono',monospace;}
+.rl{color:var(--muted2);font-size:0.85rem;margin-top:3px;}
+.rg{display:inline-block;margin-top:10px;padding:5px 16px;border-radius:20px;font-size:0.95rem;font-weight:800;}
+.rb2{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.bt{font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);margin-bottom:10px;letter-spacing:1px;}
+.br{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bl{font-size:0.76rem;font-weight:700;width:65px;flex-shrink:0;}
+.bbw{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.bb{height:100%;border-radius:3px;transition:width 0.8s ease;}
+.bsc{font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);width:30px;text-align:right;}
+.ra{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.ai2{padding:8px 0;border-bottom:1px solid var(--border);}.ai2:last-child{border:none;}
+.aq{font-size:0.8rem;margin-bottom:5px;line-height:1.5;}
+.ar{display:flex;gap:6px;flex-wrap:wrap;}
+.ac{font-size:0.68rem;padding:2px 7px;border-radius:5px;}
+.ac.correct{background:rgba(74,222,128,0.1);color:var(--green);}.ac.wrong{background:rgba(248,113,113,0.1);color:var(--red);}.ac.right{background:rgba(99,102,241,0.1);color:#a5b4fc;}
+.cb2,.rtb,.hb{width:100%;padding:13px;border-radius:11px;border:none;font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:800;cursor:pointer;margin-bottom:8px;}
+.cb2{background:var(--card2);border:1px solid var(--border);color:var(--text);}
+.rtb{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.hb{background:var(--card2);border:1px solid var(--border);color:var(--muted2);}
+.pp{padding:20px 18px;}
+.ph{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;}
+.pa{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid var(--accent);}
+.pap{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin:0 auto 12px;border:3px solid var(--accent);}
+.pn{font-size:1.2rem;font-weight:800;margin-bottom:3px;}.pe{font-size:0.78rem;color:var(--muted2);margin-bottom:8px;}
+.plb{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:4px 12px;font-size:0.75rem;color:#a5b4fc;font-weight:700;}
+.ps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.psb{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px 8px;text-align:center;}
+.psn{font-size:1.4rem;font-weight:900;}.psl{font-size:0.65rem;color:var(--muted2);margin-top:2px;}
+.ppb{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;}
+.pst{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+.sob{width:100%;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:11px;font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:800;color:var(--red);cursor:pointer;}
+.aip{padding:16px 18px;display:flex;flex-direction:column;height:calc(100vh - 130px);}
+.aim{flex:1;overflow-y:auto;padding-bottom:16px;}
+.aimsg{margin-bottom:14px;animation:fadeUp 0.3s ease;}
+.aimsg.user{text-align:right;}.aimsg.bot{text-align:left;}
+.aib{display:inline-block;max-width:85%;padding:11px 14px;border-radius:14px;font-size:0.86rem;line-height:1.65;text-align:left;}
+.aimsg.user .aib{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:14px 14px 4px 14px;}
+.aimsg.bot .aib{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:14px 14px 14px 4px;}
+.aimsg.bot .aib code{background:#07070c;padding:2px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--green);}
+.aiw{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border);}
+.aii{flex:1;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 14px;font-family:'Outfit',sans-serif;font-size:0.86rem;color:var(--text);outline:none;resize:none;}
+.aii:focus{border-color:var(--accent);}
+.ais{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:11px;padding:11px 16px;color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+.ais:active{transform:scale(0.95);}
+.aty{display:flex;gap:4px;padding:10px 14px;}
+.aty span{width:7px;height:7px;background:var(--muted2);border-radius:50%;animation:bounce 1.2s infinite;}
+.aty span:nth-child(2){animation-delay:0.2s;}.aty span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-8px);}}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(6,6,8,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:150;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;}
+.bnic{font-size:1.3rem;margin-bottom:3px;}.bnl{font-size:0.6rem;font-weight:700;color:var(--muted2);}
+.bni.active .bnl{color:var(--accent);}.bni.active .bnic{transform:scale(1.15);}
+::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.pb{padding-bottom:70px;}
+</style>
+</head>
+<body>
+<div class="progress-strip"><div class="progress-fill" id="pf"></div></div>
+<div class="topbar" id="topbar">
+  <div class="logo-mark">C</div>
+  <div class="topbar-info"><div class="topbar-title">Coding by Shoav</div><div class="topbar-sub">Learn Programming Smarter</div></div>
+  <div class="topbar-right"><div class="user-btn" id="uBtn" onclick="showPage('profile')" style="display:none"><div class="user-avatar-placeholder" id="uAv">?</div></div></div>
+</div>
+<!-- LOGIN -->
+<div class="page active pb" id="page-login">
+<div class="login-page">
+<div class="login-logo">C</div>
+<div class="login-title">Coding by <span>Shoav</span></div>
+<div class="login-sub">Programming sikhne ka smartest tarika.<br>Free mein seekho, certificate pao!</div>
+<button class="google-btn" onclick="gLogin()">
+<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+Google se Login Karo
+</button>
+<div class="login-note">Login karke apna progress save karo har device pe</div>
+</div></div>
+<!-- SETUP -->
+<div class="page pb" id="page-setup">
+<div class="setup-page">
+<div class="setup-dots"><div class="setup-dot active" id="d0"></div><div class="setup-dot" id="d1"></div></div>
+<div class="setup-step active" id="ss0">
+<div class="setup-title">Kaunsi language mein seekhoge? 🌐</div>
+<div class="setup-sub">Baad mein profile mein change bhi kar sakte ho</div>
+<div class="setup-card" id="lhi" onclick="selLang('hi')"><div class="setup-card-title">🇮🇳 Hinglish</div><div class="setup-card-desc">Hindi + English mix — Indian students ke liye best</div></div>
+<div class="setup-card" id="len" onclick="selLang('en')"><div class="setup-card-title">🇬🇧 English</div><div class="setup-card-desc">Full English — international style mein seekho</div></div>
+<button class="setup-next" onclick="sNext(1)">Aage →</button>
+</div>
+<div class="setup-step" id="ss1">
+<div class="setup-title">Abhi coding kahan tak aati hai? 💻</div>
+<div class="setup-sub">Seedha bolo — koi judge nahi karega 😄</div>
+<div class="setup-card" id="lv0" onclick="selLv(0)"><div class="setup-card-title">🌱 Bilkul Beginner</div><div class="setup-card-desc">Code kya hota hai ye bhi nahi pata</div></div>
+<div class="setup-card" id="lv1" onclick="selLv(1)"><div class="setup-card-title">📚 Thoda Pata Hai</div><div class="setup-card-desc">HTML/CSS thodi aati hai, baaki nahi</div></div>
+<div class="setup-card" id="lv2" onclick="selLv(2)"><div class="setup-card-title">💡 AI se Banwata Hoon</div><div class="setup-card-desc">AI se code likhwata hoon, samajhna chahta hoon</div></div>
+<button class="setup-next" onclick="finSetup()">Shuru Karo 🚀</button>
+</div></div></div>
+<!-- HOME -->
+<div class="page pb" id="page-home">
+<div class="home-header"><div class="home-greeting">Namaste, <span id="hName">bhai</span>! 👋</div><div class="home-sub" id="hSub">Aaj kya seekhna hai?</div></div>
+<div class="lang-grid">
+<div class="lang-card html" onclick="openL('html')"><div class="done-b" id="dn-html" style="display:none">✓</div><div class="lang-icon">🌐</div><div class="lang-name">HTML</div><div class="lang-desc">Page Structure</div><div class="lang-pw"><div class="lang-pf" id="lp-html" style="width:0%"></div></div></div>
+<div class="lang-card css" onclick="openL('css')"><div class="done-b" id="dn-css" style="display:none">✓</div><div class="lang-icon">🎨</div><div class="lang-name">CSS</div><div class="lang-desc">Design & Style</div><div class="lang-pw"><div class="lang-pf" id="lp-css" style="width:0%"></div></div></div>
+<div class="lang-card js" onclick="openL('js')"><div class="done-b" id="dn-js" style="display:none">✓</div><div class="lang-icon">⚡</div><div class="lang-name">JavaScript</div><div class="lang-desc">Action & Logic</div><div class="lang-pw"><div class="lang-pf" id="lp-js" style="width:0%"></div></div></div>
+<div class="lang-card python" onclick="openL('python')"><div class="done-b" id="dn-python" style="display:none">✓</div><div class="lang-icon">🐍</div><div class="lang-name">Python</div><div class="lang-desc">AI & Bots</div><div class="lang-pw"><div class="lang-pf" id="lp-python" style="width:0%"></div></div></div>
+<div class="lang-card cpp" onclick="openL('cpp')"><div class="done-b" id="dn-cpp" style="display:none">✓</div><div class="lang-icon">⚙️</div><div class="lang-name">C++</div><div class="lang-desc">Speed & Power</div><div class="lang-pw"><div class="lang-pf" id="lp-cpp" style="width:0%"></div></div></div>
+<div class="lang-card java" onclick="openL('java')"><div class="done-b" id="dn-java" style="display:none">✓</div><div class="lang-icon">☕</div><div class="lang-name">Java</div><div class="lang-desc">Enterprise</div><div class="lang-pw"><div class="lang-pf" id="lp-java" style="width:0%"></div></div></div>
+<div class="lang-card sql" onclick="openL('sql')"><div class="done-b" id="dn-sql" style="display:none">✓</div><div class="lang-icon">🗄️</div><div class="lang-name">SQL</div><div class="lang-desc">Database</div><div class="lang-pw"><div class="lang-pf" id="lp-sql" style="width:0%"></div></div></div>
+<div class="lang-card bash" onclick="openL('bash')"><div class="done-b" id="dn-bash" style="display:none">✓</div><div class="lang-icon">💻</div><div class="lang-name">Bash</div><div class="lang-desc">Terminal & Termux</div><div class="lang-pw"><div class="lang-pf" id="lp-bash" style="width:0%"></div></div></div>
+<div class="lang-card logic" onclick="openL('logic')"><div class="done-b" id="dn-logic" style="display:none">✓</div><div class="lang-icon">🧠</div><div class="lang-name">Logic & IQ</div><div class="lang-desc">Dimag Test</div><div class="lang-pw"><div class="lang-pf" id="lp-logic" style="width:0%"></div></div></div>
+<div class="lang-card test" onclick="startTest()"><div class="lang-icon">📝</div><div class="lang-name">Final Test</div><div class="lang-desc">Sab languages · 25 sawal · Timer</div><div class="lang-pw"><div class="lang-pf" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div></div>
+<div class="lang-card ai-t" onclick="showPage('ai')"><div class="lang-icon">🤖</div><div class="lang-name">AI Tutor — Doubt Poochho</div><div class="lang-desc">Koi bhi sawaal — code explain, errors fix</div></div>
+</div></div>
+<!-- LESSON -->
+<div class="page pb" id="page-lesson">
+<div class="lesson-topbar"><button class="back-btn" onclick="goHome()">← Wapis</button><div class="ltb"><h2 id="lh">HTML</h2><span id="ls">Lesson 1 of 3</span></div></div>
+<div id="lb"></div>
+<div class="ln"><button class="np" id="npb" onclick="lNav(-1)">←</button><button class="nn" id="nnb" onclick="lNav(1)">Aage →</button></div>
+</div>
+<!-- TEST -->
+<div class="page pb" id="page-test">
+<div class="th"><h1>📝 Final Test</h1><p>25 random sawal · Sab languages mix<br>Easy se Extreme Hard tak</p></div>
+<div class="ts"><div class="sb2"><div class="sn" id="tt">25</div><div class="sl">Total</div></div><div class="sb2"><div class="sn" id="ta" style="color:var(--accent2)">0</div><div class="sl">Done</div></div><div class="sb2"><div class="sn" id="tr2" style="color:var(--yellow)">25</div><div class="sl">Baaki</div></div></div>
+<div id="tqs"></div>
+<div class="tsw"><button class="sub" onclick="submitTest()">Submit Test 🚀</button></div>
+</div>
+<!-- CHECKING -->
+<div class="page" id="page-checking">
+<div class="cp">
+<div class="tr"><svg width="130" height="130" viewBox="0 0 120 120"><defs><linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#22d3ee"/></linearGradient></defs><circle class="bg" cx="60" cy="60" r="54"/><circle class="fi" id="tCirc" cx="60" cy="60" r="54"/></svg><div class="tc"><div class="ts2" id="tNum">60</div><div class="tl2">seconds</div></div></div>
+<div class="ct">Your paper is checking<span id="dots">...</span></div>
+<div class="cs">Thoda wait karo ⏳</div>
+</div></div>
+<!-- RESULT -->
+<div class="page pb" id="page-result">
+<div class="rp">
+<div class="rh"><div class="re" id="rEmoji">🎉</div><div class="rs" id="rScore">0/25</div><div class="rl">Final Test Result</div><div class="rg" id="rGrade">—</div></div>
+<div class="rb2"><div class="bt">LANGUAGE-WISE SCORE</div><div id="rBreak"></div></div>
+<div class="ra"><div class="bt">SAWAL KA JAWAB</div><div id="rAns"></div></div>
+<button class="cb2" onclick="copyRes()">📋 Result Copy Karo</button>
+<button class="rtb" onclick="retryT()">🔄 Phir Se Test Do</button>
+<button class="hb" onclick="goHome()">🏠 Home</button>
+</div></div>
+<!-- PROFILE -->
+<div class="page pb" id="page-profile">
+<div class="pp">
+<div class="ph"><div class="pap" id="pAv">?</div><div class="pn" id="pName">Loading...</div><div class="pe" id="pEmail">—</div><div class="plb" id="pLang">🌐 Hinglish</div></div>
+<div class="ps"><div class="psb"><div class="psn" id="stL" style="color:var(--accent2)">0</div><div class="psl">Lessons</div></div><div class="psb"><div class="psn" id="stT" style="color:var(--green)">0</div><div class="psl">Tests</div></div><div class="psb"><div class="psn" id="stS" style="color:var(--yellow)">0%</div><div class="psl">Best Score</div></div></div>
+<div class="ppb"><div class="pst">LANGUAGE PROGRESS</div><div id="pLP"></div></div>
+<button class="sob" onclick="sOut()">🚪 Sign Out</button>
+</div></div>
+<!-- AI -->
+<div class="page pb" id="page-ai">
+<div class="lesson-topbar"><button class="back-btn" onclick="goHome()">← Wapis</button><div class="ltb"><h2>🤖 AI Tutor</h2><span>Koi bhi sawaal poochho</span></div></div>
+<div class="aip">
+<div class="aim" id="aiM">
+<div class="aimsg bot"><div class="aib">Namaste! 👋 Main tumhara AI Tutor hoon.<br><br>HTML, CSS, JS, Python, C++, Java, SQL, Bash — koi bhi concept poochho, code explain karna ho, error fix karni ho — sab help karunga! 🚀</div></div>
+</div>
+<div class="aiw"><textarea class="aii" id="aiIn" placeholder="Apna sawaal likho..." rows="1" onkeydown="aiKD(event)"></textarea><button class="ais" onclick="sendAI()">➤</button></div>
+</div></div>
+<!-- BOTTOM NAV -->
+<div class="bnav" id="bnav" style="display:none">
+<div class="bni active" id="bn-home" onclick="goHome()"><div class="bnic">🏠</div><div class="bnl">Home</div></div>
+<div class="bni" id="bn-test" onclick="startTest()"><div class="bnic">📝</div><div class="bnl">Test</div></div>
+<div class="bni" id="bn-ai" onclick="showPage('ai')"><div class="bnic">🤖</div><div class="bnl">AI Tutor</div></div>
+<div class="bni" id="bn-profile" onclick="showPage('profile')"><div class="bnic">👤</div><div class="bnl">Profile</div></div>
+</div>
+<script>
+// FIREBASE
+const FC={apiKey:"AIzaSyAW8ewW1zErmKdo5NBuoyF0DuTEaVcR3eI",authDomain:"learn-coding-79e2d.firebaseapp.com",projectId:"learn-coding-79e2d",storageBucket:"learn-coding-79e2d.firebasestorage.app",messagingSenderId:"255675555787",appId:"1:255675555787:web:ea502a6fbc4c62903fe04e"};
+firebase.initializeApp(FC);
+const auth=firebase.auth(),db=firebase.firestore(),gp=new firebase.auth.GoogleAuthProvider();
+let CU=null,UP=null,selLang_='hi',selLv_=0;
+
+auth.onAuthStateChanged(async u=>{
+  if(u){CU=u;const d=await db.collection('users').doc(u.uid).get();if(d.exists){UP=d.data();afterLogin();}else{showPage('setup');document.getElementById('bnav').style.display='none';}}
+  else{showPage('login');document.getElementById('bnav').style.display='none';}
+});
+
+async function gLogin(){try{await auth.signInWithPopup(gp);}catch(e){alert('Login failed: '+e.message);}}
+function sOut(){if(confirm('Sign out karna chahte ho?'))auth.signOut();}
+function selLang(l){selLang_=l;document.querySelectorAll('[id^="lh"],[id^="len"]').forEach(e=>e.classList.remove('selected'));document.getElementById('l'+l).classList.add('selected');}
+function selLv(v){selLv_=v;[0,1,2].forEach(i=>document.getElementById('lv'+i).classList.remove('selected'));document.getElementById('lv'+v).classList.add('selected');}
+function sNext(s){document.querySelectorAll('.setup-step').forEach(e=>e.classList.remove('active'));document.getElementById('ss'+s).classList.add('active');document.querySelectorAll('.setup-dot').forEach((d,i)=>d.classList.toggle('active',i<=s));}
+async function finSetup(){if(!CU)return;UP={name:CU.displayName,email:CU.email,photo:CU.photoURL,lang:selLang_,level:selLv_,progress:{},testCount:0,bestScore:0,createdAt:new Date()};await db.collection('users').doc(CU.uid).set(UP);afterLogin();}
+function afterLogin(){document.getElementById('bnav').style.display='flex';document.getElementById('uBtn').style.display='flex';const n=UP.name||CU.displayName||'User';document.getElementById('uAv').textContent=n[0].toUpperCase();document.getElementById('hName').textContent=n.split(' ')[0];document.getElementById('hSub').textContent=UP.lang==='hi'?'Aaj kya seekhna hai?':'What would you like to learn today?';loadProfile();updHomeProg();showPage('home');}
+function loadProfile(){if(!UP||!CU)return;const n=UP.name||CU.displayName||'User';document.getElementById('pName').textContent=n;document.getElementById('pEmail').textContent=UP.email||'';document.getElementById('pAv').textContent=n[0].toUpperCase();if(CU.photoURL){const img=document.createElement('img');img.src=CU.photoURL;img.className='pa';document.getElementById('pAv').replaceWith(img);}document.getElementById('pLang').textContent=UP.lang==='hi'?'🇮🇳 Hinglish':'🇬🇧 English';document.getElementById('stT').textContent=UP.testCount||0;document.getElementById('stS').textContent=(UP.bestScore||0)+'%';const p=UP.progress||{};const dn=Object.values(p).filter(v=>v>=100).length;document.getElementById('stL').textContent=dn;const lc={html:'#f97316',css:'#3b82f6',js:'#fbbf24',python:'#4ade80',cpp:'#f472b6',java:'#f97316',sql:'#22d3ee',bash:'#a78bfa',logic:'#6366f1'};let h='';Object.keys(lc).forEach(l=>{const pct=p[l]||0;h+=`<div class="br"><div class="bl" style="color:${lc[l]}">${l.toUpperCase()}</div><div class="bbw"><div class="bb" style="width:${pct}%;background:${lc[l]}"></div></div><div class="bsc">${pct}%</div></div>`;});document.getElementById('pLP').innerHTML=h;}
+async function saveProg(lang,pct){if(!CU||!UP)return;if(!UP.progress)UP.progress={};UP.progress[lang]=Math.max(UP.progress[lang]||0,pct);await db.collection('users').doc(CU.uid).update({progress:UP.progress});updHomeProg();}
+function updHomeProg(){const p=UP?.progress||{};['html','css','js','python','cpp','java','sql','bash','logic'].forEach(l=>{const e=document.getElementById('lp-'+l);const d=document.getElementById('dn-'+l);if(e)e.style.width=(p[l]||0)+'%';if(d)d.style.display=(p[l]||0)>=100?'block':'none';});}
+
+// NAV
+let CP='login';
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');CP=id;document.querySelectorAll('.bni').forEach(b=>b.classList.remove('active'));const m={home:'bn-home',test:'bn-test',ai:'bn-ai',profile:'bn-profile'};if(m[id])document.getElementById(m[id])?.classList.add('active');window.scrollTo(0,0);}
+function goHome(){showPage('home');updHomeProg();}
+
+// QUESTION BANKS
+const QB={
+html:[
+{q:"HTML ka full form kya hai?",opts:["HyperText Markup Language","High Text Machine Language","Home Tool Markup Language","HyperText Machine Language"],ans:0,diff:"easy"},
+{q:"Page ka visible content kahan likhte hain?",opts:["head mein","html mein directly","body mein","meta mein"],ans:2,diff:"easy"},
+{q:"Sabse bada heading tag?",opts:["h6","heading","h1","big"],ans:2,diff:"easy"},
+{q:"Image tag kaunsa hai?",opts:["image","img","pic","photo"],ans:1,diff:"easy"},
+{q:"Link banane ke liye?",opts:["link","url","href","a"],ans:3,diff:"easy"},
+{q:"br tag kya karta hai?",opts:["Bold","Line break","Border","Button"],ans:1,diff:"medium"},
+{q:"Input field ke liye?",opts:["input","form","field","text"],ans:0,diff:"medium"},
+{q:"Table row ke liye?",opts:["td","th","tr","table"],ans:2,diff:"medium"},
+{q:"HTML comment kaise?",opts:["// comment","/* comment */","<!-- comment -->","# comment"],ans:2,diff:"medium"},
+{q:"ul aur ol mein kya fark?",opts:["Koi fark nahi","ul=unordered, ol=ordered","ul=ordered, ol=unordered","Dono same"],ans:1,diff:"medium"},
+{q:"div ke andar span — span kya hai?",opts:["Parent","Child","Sibling","Root"],ans:1,diff:"hard"},
+{q:"meta charset='UTF-8' kyun?",opts:["Font set","Character encoding set","Background","Title"],ans:1,diff:"hard"},
+{q:"p>Hello<p — kya galat hai?",opts:["p tag galat","Closing /p missing","Content galat","Kuch nahi"],ans:1,diff:"hard"},
+{q:"form action='/submit' — action kya batata hai?",opts:["Form naam","Data kahan jaayega","Button naam","Color"],ans:1,diff:"hard"},
+{q:"Best practice: ek page mein kitne h1?",opts:["Jitne chahein","Sirf ek","Do","Teen"],ans:1,diff:"hard"}
+],
+css:[
+{q:"Text color change ke liye?",opts:["text-color: red","font-color: red","color: red","text: red"],ans:2,diff:"easy"},
+{q:"Background color ke liye?",opts:["bg: blue","background-color: blue","background: blue","b aur c dono sahi"],ans:3,diff:"easy"},
+{q:"Font size ke liye?",opts:["text-size: 16px","font-size: 16px","size: 16px","font: 16px"],ans:1,diff:"easy"},
+{q:"Element ke bahar space ke liye?",opts:["spacing","margin","padding","border"],ans:1,diff:"easy"},
+{q:"Content ke andar space ke liye?",opts:["margin","border","padding","gap"],ans:2,diff:"easy"},
+{q:"border-radius kya karta hai?",opts:["Width badlta","Corners round karta","Color badlta","Hata deta"],ans:1,diff:"medium"},
+{q:"display: flex kya karta hai?",opts:["Hide karta","Flexbox enable karta","Bold karta","Border lagata"],ans:1,diff:"medium"},
+{q:"CSS class selector?",opts:["#myClass","myClass","*myClass",".myClass"],ans:3,diff:"medium"},
+{q:"CSS ID selector?",opts:[".myId","#myId","@myId","*myId"],ans:1,diff:"medium"},
+{q:"position: absolute kya karta hai?",opts:["Normal flow","Parent ke relative","Fixed rakhta","Delete"],ans:1,diff:"hard"},
+{q:"z-index kab kaam karta hai?",opts:["Sirf flex pe","Jab position set ho","Hamesha","Kabhi nahi"],ans:1,diff:"hard"},
+{q:"@media query kisliye?",opts:["Animation","Responsive design","Font import","Color change"],ans:1,diff:"hard"},
+{q:"transition: all 0.3s ease kya karta hai?",opts:["Background animate","Sab CSS changes smooth 0.3s mein","Rotate","Size badle"],ans:1,diff:"hard"},
+{q:"CSS specificity mein sabse zyada weight?",opts:["class (.btn)","tag (div)","id (#main)","*"],ans:2,diff:"hard"},
+{q:"grid-template-columns: 1fr 2fr — ratio?",opts:["1:1","1:2","2:1","1:3"],ans:1,diff:"hard"}
+],
+js:[
+{q:"Variable banane ke liye?",opts:["var/let/const","variable","int","string"],ans:0,diff:"easy"},
+{q:"Popup ke liye?",opts:["popup()","show()","alert()","message()"],ans:2,diff:"easy"},
+{q:"Console mein print ke liye?",opts:["print()","echo()","console.log()","log()"],ans:2,diff:"easy"},
+{q:"Array kya hai?",opts:["Ek value","Multiple values ek jagah","Function","Object"],ans:1,diff:"easy"},
+{q:"HTML element dhundhne ke liye?",opts:["findElement()","querySelector()","getHTML()","searchTag()"],ans:1,diff:"easy"},
+{q:"let aur const mein fark?",opts:["Koi nahi","let=badal sakte, const=nahi","const=badal sakte","Dono same"],ans:1,diff:"medium"},
+{q:"Arrow function?",opts:["function() =>","=> function()","const fn = () => {}","fn => function"],ans:2,diff:"medium"},
+{q:"Array mein add ke liye?",opts:[".add()","push()","append()","insert()"],ans:1,diff:"medium"},
+{q:"=== aur == mein fark?",opts:["Koi nahi","=== type bhi check karta","== safe hai","=== slow"],ans:1,diff:"medium"},
+{q:"setTimeout kya karta hai?",opts:["Loop","Delay ke baad code chalata","Hide karta","Error pakadta"],ans:1,diff:"hard"},
+{q:"Promise kya hai?",opts:["Variable type","Future value ka representation","Array type","Loop"],ans:1,diff:"hard"},
+{q:"JSON.parse() kya karta hai?",opts:["Object ko string","String ko JS object","Array banata","Number banata"],ans:1,diff:"hard"},
+{q:"Closure kya hai?",opts:["Loop type","Function jo bahar ka variable access kare","Object banana","Error handling"],ans:1,diff:"hard"},
+{q:"x='5', y=5 — x===y?",opts:["true","false","Error","undefined"],ans:1,diff:"hard"},
+{q:"[1,2,3].map(x=>x*2) result?",opts:["[1,2,3]","[2,4,6]","[1,4,9]","Error"],ans:1,diff:"hard"}
+],
+python:[
+{q:"Python mein print kaise?",opts:["echo()","printf()","print()","console.log()"],ans:2,diff:"easy"},
+{q:"Python comment kaise?",opts:["// comment","/* */","# comment","<!-- -->"],ans:2,diff:"easy"},
+{q:"Python variable kaise banate?",opts:["var x=5","int x=5","x=5","let x=5"],ans:2,diff:"easy"},
+{q:"Python list kaise?",opts:["{}","()","[]","<>"],ans:2,diff:"easy"},
+{q:"Python for loop?",opts:["for i in range(5):","for(i=0;i<5;i++)","foreach i in 5:","loop 5:"],ans:0,diff:"easy"},
+{q:"Dictionary kya hai Python mein?",opts:["List type","Key-value pairs","Function","Class"],ans:1,diff:"medium"},
+{q:"len() kya karta hai?",opts:["Print karta","Length return karta","Loop chalata","Delete karta"],ans:1,diff:"medium"},
+{q:"def kisliye?",opts:["Variable","Loop","Function define","Import"],ans:2,diff:"medium"},
+{q:"Python mein indentation kyun zaroori?",opts:["Decoration","Code blocks define","Speed","Optional"],ans:1,diff:"medium"},
+{q:"pip kya hai?",opts:["Python editor","Package manager","Debugger","Compiler"],ans:1,diff:"hard"},
+{q:"__init__ kab call hota hai?",opts:["Function call","Object create hone pe","Program start","Import"],ans:1,diff:"hard"},
+{q:"try-except kisliye?",opts:["Loop","Error handle","Function","Import"],ans:1,diff:"hard"},
+{q:"Lambda kya hai?",opts:["Badi function","Ek line anonymous function","Class method","Recursive"],ans:1,diff:"hard"},
+{q:"[x for x in range(5)] kya hai?",opts:["Loop","List comprehension","Dictionary","Tuple"],ans:1,diff:"hard"},
+{q:"list=[1,2,3] — list[-1] kya?",opts:["1","Error","3","None"],ans:2,diff:"hard"}
+],
+cpp:[
+{q:"C++ output ke liye?",opts:["print()","console.log()","cout <<","echo"],ans:2,diff:"easy"},
+{q:"main function kaise?",opts:["void main()","int main()","function main()","start main()"],ans:1,diff:"easy"},
+{q:"Header include kaise?",opts:["import iostream","#include <iostream>","use iostream","require iostream"],ans:1,diff:"easy"},
+{q:"Integer variable declare?",opts:["var x=5","int x=5;","integer x=5","x:int=5"],ans:1,diff:"easy"},
+{q:"Newline kaise?",opts:["\\t","\\n ya endl dono","sirf \\n","/n"],ans:1,diff:"easy"},
+{q:"For loop C++ mein?",opts:["for x in range(5):","for(int i=0;i<5;i++)","foreach(5)","loop(5)"],ans:1,diff:"medium"},
+{q:"Kuch return nahi karna toh?",opts:["null","void","empty","none"],ans:1,diff:"medium"},
+{q:"cin kya karta hai?",opts:["Output","Input leta","Comment","Include"],ans:1,diff:"medium"},
+{q:"Array declare?",opts:["array int a[5]","int a=[5]","int a[5];","list a(5)"],ans:2,diff:"medium"},
+{q:"Pointer kya hai?",opts:["Variable type","Memory address store karne wala","Function","Array"],ans:1,diff:"hard"},
+{q:"Class kaise define?",opts:["class MyClass {}","def MyClass:","object MyClass","type MyClass"],ans:0,diff:"hard"},
+{q:"C aur C++ mein fark?",opts:["Koi nahi","C++ mein OOP","C faster","C++ older"],ans:1,diff:"hard"},
+{q:"new keyword kya karta hai?",opts:["Variable declare","Heap pe memory allocate","Function","Loop"],ans:1,diff:"hard"},
+{q:"namespace kisliye?",opts:["Speed","Name conflicts avoid","Memory","Security"],ans:1,diff:"hard"},
+{q:"int a=7,b=2 — a%b?",opts:["3","3.5","1","2"],ans:2,diff:"hard"}
+],
+java:[
+{q:"Java output ke liye?",opts:["print()","console.log()","System.out.println()","cout <<"],ans:2,diff:"easy"},
+{q:"main method kaise?",opts:["void main()","public static void main(String[] args)","static main()","int main()"],ans:1,diff:"easy"},
+{q:"Integer variable?",opts:["var x=5","int x=5;","integer x=5","Int x=5"],ans:1,diff:"easy"},
+{q:"Java comment?",opts:["# comment","<!-- -->","// comment","** comment"],ans:2,diff:"easy"},
+{q:"String declare?",opts:["string s='hi'","String s=\"hi\";","str s=hi","var s=hi"],ans:1,diff:"easy"},
+{q:"Class kya hai OOP mein?",opts:["Variable type","Object ka blueprint","Function","Loop"],ans:1,diff:"medium"},
+{q:"Array declare?",opts:["int[] arr=new int[5];","array int[5]","int arr(5)","var arr=[5]"],ans:0,diff:"medium"},
+{q:"this keyword kya hai?",opts:["Bahar variable","Current object reference","Static method","Parent class"],ans:1,diff:"medium"},
+{q:"interface kisliye?",opts:["Variable store","Contract define karne ke liye","Loop","Import"],ans:1,diff:"hard"},
+{q:"Exception handle kaise?",opts:["if-else","try-catch","loop","switch"],ans:1,diff:"hard"},
+{q:"abstract aur interface mein fark?",opts:["Koi nahi","Abstract mein implementation ho sakti","Interface powerful","Abstract faster"],ans:1,diff:"hard"},
+{q:"String immutable kyun?",opts:["Performance","Security aur caching","Size","Koi reason nahi"],ans:1,diff:"hard"},
+{q:"static keyword Java mein?",opts:["Object se attach","Class se attach","Private banata","Final banata"],ans:1,diff:"hard"},
+{q:"ArrayList aur LinkedList mein fark?",opts:["Koi nahi","ArrayList random fast, LinkedList insert fast","LinkedList sab fast","ArrayList zyada memory"],ans:1,diff:"hard"},
+{q:"finally block kab chalega?",opts:["Sirf exception pe","Sirf success pe","Hamesha","Kabhi nahi"],ans:2,diff:"hard"}
+],
+sql:[
+{q:"Data select karne ke liye?",opts:["GET * FROM","FETCH * FROM","SELECT * FROM","READ * FROM"],ans:2,diff:"easy"},
+{q:"Table banana?",opts:["MAKE TABLE","BUILD TABLE","CREATE TABLE","NEW TABLE"],ans:2,diff:"easy"},
+{q:"Data daalne ke liye?",opts:["ADD INTO","INSERT INTO","PUT INTO","PUSH INTO"],ans:1,diff:"easy"},
+{q:"Data update?",opts:["MODIFY","CHANGE","UPDATE","EDIT"],ans:2,diff:"easy"},
+{q:"Data delete?",opts:["REMOVE","DELETE","DROP","ERASE"],ans:1,diff:"easy"},
+{q:"WHERE clause kisliye?",opts:["Sort","Filter","Join","Count"],ans:1,diff:"medium"},
+{q:"ORDER BY kya karta?",opts:["Filter","Sort karta","Join","Group"],ans:1,diff:"medium"},
+{q:"COUNT() kya karta?",opts:["Sum","Rows count","Average","Maximum"],ans:1,diff:"medium"},
+{q:"PRIMARY KEY kya hai?",opts:["Koi bhi column","Unique+NOT NULL row identifier","Foreign reference","Encrypted"],ans:1,diff:"medium"},
+{q:"JOIN kisliye?",opts:["Ek table","Do+ tables combine","Delete","Sort"],ans:1,diff:"hard"},
+{q:"INNER JOIN aur LEFT JOIN fark?",opts:["Koi nahi","INNER=matching only, LEFT=left table sab","LEFT=matching, INNER=sab","INNER faster"],ans:1,diff:"hard"},
+{q:"GROUP BY kisliye?",opts:["Sort","Same values group","Join","Filter"],ans:1,diff:"hard"},
+{q:"HAVING aur WHERE fark?",opts:["Koi nahi","HAVING aggregate ke baad filter, WHERE pehle","WHERE powerful","HAVING faster"],ans:1,diff:"hard"},
+{q:"Index kisliye?",opts:["Store","Query speed badhane","Security","Backup"],ans:1,diff:"hard"},
+{q:"ACID ka A kya hai?",opts:["Authentication","Atomicity","Authorization","Availability"],ans:1,diff:"hard"}
+],
+bash:[
+{q:"Current directory?",opts:["cd","ls","pwd","dir"],ans:2,diff:"easy"},
+{q:"Files list karne ke liye?",opts:["list","show","ls","dir"],ans:2,diff:"easy"},
+{q:"Naya folder banana?",opts:["createdir","mkdir","newdir","makedir"],ans:1,diff:"easy"},
+{q:"File content dekhne ke liye?",opts:["show","read","cat","open"],ans:2,diff:"easy"},
+{q:"Bash comment kaise?",opts:["// comment","/* */","# comment","-- comment"],ans:2,diff:"easy"},
+{q:"File delete?",opts:["del","remove","rm","delete"],ans:2,diff:"medium"},
+{q:"Termux mein Python install?",opts:["apt install python","pkg install python","pip install python","brew install python"],ans:1,diff:"medium"},
+{q:"Script executable banana?",opts:["chmod +x script.sh","exec script.sh","run script.sh","execute script.sh"],ans:0,diff:"medium"},
+{q:"Bash variable kaise?",opts:["var x=5","int x=5","x=5 (no spaces)","let x=5"],ans:2,diff:"medium"},
+{q:"Bash if condition?",opts:["if x>5:","if [ $x -gt 5 ]; then","if(x>5){","if x>5 then"],ans:1,diff:"hard"},
+{q:"grep command kisliye?",opts:["Copy","Text search","Delete","Folder banana"],ans:1,diff:"hard"},
+{q:"Pipe | kya karta hai?",opts:["File banata","Ek command ka output doosre ka input banata","Directory banata","Permission deta"],ans:1,diff:"hard"},
+{q:"cron job kisliye?",opts:["Compress","Scheduled tasks automatically chalane","Network","Kill process"],ans:1,diff:"hard"},
+{q:"$? kya store karta hai?",opts:["Process ID","Last command exit status","Directory","Username"],ans:1,diff:"hard"},
+{q:"Bash for loop?",opts:["for i in range(5):","for i in {1..5}; do echo $i; done","for(i=0;i<5;i++)","foreach i 1 5"],ans:1,diff:"hard"}
+],
+logic:[
+{q:"2, 4, 6, 8, ? agla number?",opts:["9","10","11","12"],ans:1,diff:"easy"},
+{q:"3 ghante mein kitne minute?",opts:["120","160","180","200"],ans:2,diff:"easy"},
+{q:"1, 1, 2, 3, 5, 8, ? — Fibonacci ka agla?",opts:["11","13","10","12"],ans:1,diff:"easy"},
+{q:"10 roz sawal, 7 din mein kitne total?",opts:["60","70","77","80"],ans:1,diff:"easy"},
+{q:"ABCD se C hata do — kya bachega?",opts:["ABD","ADB","BAD","DAB"],ans:0,diff:"easy"},
+{q:"3 aadmi 3 din mein 3 kaam — 6 aadmi 6 din mein?",opts:["6","9","12","18"],ans:2,diff:"medium"},
+{q:"4 kone, har kone mein billi, har billi ke saamne 3 billiyan — kul?",opts:["12","16","4","8"],ans:2,diff:"medium"},
+{q:"1 se 100 tak sum?",opts:["4950","5000","5050","5100"],ans:2,diff:"medium"},
+{q:"if(a>b) print(a) else print(b) — a=5,b=10 — output?",opts:["5","10","Error","Nothing"],ans:1,diff:"medium"},
+{q:"60km/h, 2 ghante — kitni door?",opts:["100km","110km","120km","130km"],ans:2,diff:"medium"},
+{q:"x=5; y=x++; y ki value?",opts:["4","5","6","Error"],ans:1,diff:"hard"},
+{q:"for(i=0;i<5;i+=2) kitni baar chalega?",opts:["5","3","2","4"],ans:1,diff:"hard"},
+{q:"Binary 1010 ka decimal?",opts:["8","10","12","14"],ans:1,diff:"hard"},
+{q:"Stack ka principle?",opts:["FIFO","LIFO","Random","Sorted"],ans:1,diff:"hard"},
+{q:"Recursion bina base case — kya hoga?",opts:["Normal","Infinite loop/Stack overflow","Kuch nahi","Compile error"],ans:1,diff:"hard"},
+{q:"n=1; while(n<100) n*=2; — band hone pe n?",opts:["64","128","100","256"],ans:1,diff:"extreme"},
+{q:"3 switches, 3 bulbs alag kamre — ek baar jaoge — kaise identify karoge?",opts:["Possible nahi","1 on rakhke garam karo, phir 2 on karke jao — on=2, garam=1, thanda off=3","Sab on karo","Sab off karo"],ans:1,diff:"extreme"},
+{q:"A hamesha sach, B hamesha jhooth — ek sawaal mein identify kaise?",opts:["Kya tum A ho?","Dusra kya kahega agar main poochhun ki tum A ho?","2+2=4 hai?","Kaun jhooth bolta?"],ans:1,diff:"extreme"},
+{q:"C++ mein arr[5] access — size 5 array mein — kya hoga?",opts:["0","Compile error","Undefined behavior","5"],ans:2,diff:"extreme"},
+{q:"O(n²) vs O(n log n) large data ke liye?",opts:["O(n²) simple","O(n log n) better","Dono same","Machine dependent"],ans:1,diff:"extreme"}
+]};
+
+// LESSONS
+const LS={
+html:{color:"#f97316",badge:"HTML",sections:[
+{title:"HTML <span style='color:#f97316'>Kya Hai?</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>HTML = <strong>HyperText Markup Language</strong><br><br>Soch ek ghar bana raha hai — pehle <em>deewarein aur chhath</em> chahiye. Website mein yahi HTML karta hai — <strong>structure deta hai.</strong></p></div><div class='cw'><div class='ch'><span>hello.html</span></div><div class='cb'><span class='tg'>&lt;!DOCTYPE html&gt;</span><br><span class='tg'>&lt;html&gt;</span><br>&nbsp;&nbsp;<span class='tg'>&lt;head&gt;&lt;title&gt;</span>Mera Page<span class='tg'>&lt;/title&gt;&lt;/head&gt;</span><br>&nbsp;&nbsp;<span class='tg'>&lt;body&gt;</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='tg'>&lt;h1&gt;</span>Namaste!<span class='tg'>&lt;/h1&gt;</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='tg'>&lt;p&gt;</span>Ye mera page hai.<span class='tg'>&lt;/p&gt;</span><br>&nbsp;&nbsp;<span class='tg'>&lt;/body&gt;</span><br><span class='tg'>&lt;/html&gt;</span></div></div><div class='tip'>Har tag open hota aur band bhi — &lt;h1&gt; ke saath &lt;/h1&gt; zaroori!</div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("html",0)'>Run</button></div><textarea class='ce' id='ed-html-0'>&lt;h1&gt;Mera Naam Shoav Hai&lt;/h1&gt;\n&lt;p&gt;Main ek developer hoon.&lt;/p&gt;\n&lt;p&gt;Ye mera pehla HTML code hai! 🎉&lt;/p&gt;</textarea><div class='pf'><iframe id='pv-html-0'></iframe></div></div>`},
+{title:"Common <span style='color:#f97316'>Tags</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>TAGS</div><p>Ye tags har project mein kaam aate hain — <strong>link, image, button, list</strong></p></div><div class='cw'><div class='ch'><span>tags.html</span></div><div class='cb'><span class='tg'>&lt;a</span> <span class='at'>href</span>=<span class='str'>"https://t.me/ZaraAssist_Bot"</span><span class='tg'>&gt;</span>Zara Bot<span class='tg'>&lt;/a&gt;</span><br><span class='tg'>&lt;img</span> <span class='at'>src</span>=<span class='str'>"photo.jpg"</span> <span class='at'>alt</span>=<span class='str'>"photo"</span><span class='tg'>&gt;</span><br><span class='tg'>&lt;button&gt;</span>Click<span class='tg'>&lt;/button&gt;</span><br><span class='tg'>&lt;ul&gt;&lt;li&gt;</span>Item 1<span class='tg'>&lt;/li&gt;&lt;li&gt;</span>Item 2<span class='tg'>&lt;/li&gt;&lt;/ul&gt;</span></div></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("html",1)'>Run</button></div><textarea class='ce' id='ed-html-1'>&lt;h2&gt;Meri Skills&lt;/h2&gt;\n&lt;ul&gt;\n  &lt;li&gt;Telegram Bots&lt;/li&gt;\n  &lt;li&gt;Web Development&lt;/li&gt;\n  &lt;li&gt;BGMI Pro 😄&lt;/li&gt;\n&lt;/ul&gt;\n&lt;a href="https://t.me/ZaraAssist_Bot"&gt;Zara Bot Try Karo!&lt;/a&gt;</textarea><div class='pf'><iframe id='pv-html-1'></iframe></div></div>`},
+{title:"Forms & <span style='color:#f97316'>Input</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>FORMS</div><p>User se data lena — login, contact — tab <strong>form aur input</strong> use karte hain.</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("html",2)'>Run</button></div><textarea class='ce' id='ed-html-2'>&lt;style&gt;\n  input,button{display:block;margin:8px 0;padding:9px;border-radius:8px;border:1px solid #ccc;}\n  button{background:#6366f1;color:white;border:none;cursor:pointer;}\n&lt;/style&gt;\n&lt;h3&gt;Contact Form&lt;/h3&gt;\n&lt;input type="text" placeholder="Naam"&gt;\n&lt;input type="email" placeholder="Email"&gt;\n&lt;button&gt;Bhejo 🚀&lt;/button&gt;</textarea><div class='pf'><iframe id='pv-html-2'></iframe></div></div>`}
+],qb:"html"},
+css:{color:"#3b82f6",badge:"CSS",sections:[
+{title:"CSS <span style='color:#3b82f6'>Kya Hai?</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>HTML = dhaancha. <strong>CSS = rang, design, decoration.</strong><br><br>Colors, fonts, sizes, spacing, animations — sab CSS se control hota hai.</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("css",0)'>Run</button></div><textarea class='ce' id='ed-css-0'>&lt;style&gt;\n  h1{color:#6366f1;font-family:Arial;}\n  p{background:#f0f0f0;padding:12px;border-radius:8px;}\n  button{background:#22d3ee;color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;}\n&lt;/style&gt;\n&lt;h1&gt;Coding by Shoav&lt;/h1&gt;\n&lt;p&gt;CSS ne style kiya!&lt;/p&gt;\n&lt;button&gt;Click ✨&lt;/button&gt;</textarea><div class='pf'><iframe id='pv-css-0'></iframe></div></div>`},
+{title:"Selectors & <span style='color:#3b82f6'>Classes</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>SELECTORS</div><p><strong>Tag</strong> — sab h1 pe. <strong>Class (.)</strong> — specific elements. <strong>ID (#)</strong> — ek element.</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("css",1)'>Run</button></div><textarea class='ce' id='ed-css-1'>&lt;style&gt;\n  .card{background:#1e1e2e;color:white;padding:16px;border-radius:12px;margin:8px 0;}\n  .card.sp{border:2px solid #6366f1;}\n  #title{font-size:22px;color:#22d3ee;}\n&lt;/style&gt;\n&lt;h2 id="title"&gt;Mere Projects&lt;/h2&gt;\n&lt;div class="card"&gt;Zara Bot 🤖&lt;/div&gt;\n&lt;div class="card sp"&gt;MilteHai Bot ⭐&lt;/div&gt;</textarea><div class='pf'><iframe id='pv-css-1'></iframe></div></div>`},
+{title:"Flexbox & <span style='color:#3b82f6'>Layout</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>FLEXBOX</div><p><strong>display: flex</strong> — elements ko row ya column mein arrange karta hai. Modern layout ka most important CSS property!</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("css",2)'>Run</button></div><textarea class='ce' id='ed-css-2'>&lt;style&gt;\n  .row{display:flex;gap:10px;flex-wrap:wrap;padding:10px;}\n  .box{flex:1;min-width:80px;background:#6366f1;color:white;padding:20px 10px;border-radius:10px;text-align:center;font-weight:bold;}\n&lt;/style&gt;\n&lt;div class="row"&gt;\n  &lt;div class="box"&gt;HTML&lt;/div&gt;\n  &lt;div class="box" style="background:#22d3ee;color:#000"&gt;CSS&lt;/div&gt;\n  &lt;div class="box" style="background:#fbbf24;color:#000"&gt;JS&lt;/div&gt;\n&lt;/div&gt;</textarea><div class='pf'><iframe id='pv-css-2'></iframe></div></div>`}
+],qb:"css"},
+js:{color:"#fbbf24",badge:"JS",sections:[
+{title:"JS <span style='color:#fbbf24'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>HTML=dhaancha, CSS=design, <strong>JS=zindagi/action</strong><br><br>Button click, data fetch, page update — sab JS karta hai!</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rJS(0)'>Run</button></div><textarea class='ce' id='ed-js-0'>let naam = "Shoav";\nlet umar = 16;\nif (umar >= 18) {\n  console.log(naam + " adult hai");\n} else {\n  console.log(naam + " abhi " + umar + " saal ka hai");\n}\nfunction add(a,b){ return a+b; }\nconsole.log("5+3 =", add(5,3));</textarea><div class='ob' id='oj-0'>Output yahan...</div></div>`},
+{title:"Arrays & <span style='color:#fbbf24'>Objects</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>DATA</div><p><strong>Array</strong> = [] mein multiple values. <strong>Object</strong> = {key:value} pairs. Har project mein use hote hain.</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rJS(1)'>Run</button></div><textarea class='ce' id='ed-js-1'>let bots = ["Zara Bot","MilteHai Bot","Waguri Bot"];\nbots.push("New Bot");\nconsole.log("Mere bots:", bots.length);\nbots.forEach(bot => console.log("✅ " + bot));\nlet profile = {naam:"Shoav",role:"Developer"};\nconsole.log(profile.naam, "-", profile.role);</textarea><div class='ob' id='oj-1'>Output yahan...</div></div>`},
+{title:"DOM <span style='color:#fbbf24'>Manipulation</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>DOM</div><p>JS se HTML elements ko <strong>dhundhna, badalna</strong> — DOM manipulation. Interactive websites isi se banti hain.</p></div><div class='ew'><div class='eh'><span class='el'>Try Karo</span><button class='rb' onclick='rHTML("js",2)'>Run</button></div><textarea class='ce' id='ed-js-2'>&lt;style&gt;\n  button{background:#6366f1;color:white;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;margin:3px;}\n  #res{margin-top:10px;padding:12px;background:#f0f0f0;border-radius:8px;font-size:18px;min-height:44px;}\n&lt;/style&gt;\n&lt;button onclick="chN()"&gt;Naam Badlo&lt;/button&gt;\n&lt;button onclick="chC()"&gt;Color Badlo&lt;/button&gt;\n&lt;div id="res"&gt;Yahan dikhega...&lt;/div&gt;\n&lt;script&gt;\n  const n=["Shoav","Developer","Bot Maker","Gangapur 🔥"];let i=0;\n  function chN(){document.getElementById('res').innerText=n[i++%n.length];}\n  function chC(){document.getElementById('res').style.background=['#fbbf24','#6366f1','#4ade80','#f87171'][Math.floor(Math.random()*4)];}\n&lt;/script&gt;</textarea><div class='pf'><iframe id='pv-js-2'></iframe></div></div>`}
+],qb:"js"},
+python:{color:"#4ade80",badge:"Python",sections:[
+{title:"Python <span style='color:#4ade80'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>Python = <strong>simple, powerful</strong>. Tera Zara Bot, MilteHai Bot — sab Python mein! AI, bots, automation — sab Python se hota hai.</p></div><div class='cw'><div class='ch'><span>hello.py</span></div><div class='cb'><span class='cm'># Comment # se likhte hain</span><br>naam = <span class='str'>"Shoav"</span><br>umar = <span class='num'>16</span><br><span class='fn'>print</span>(<span class='str'>f"Naam: {naam}, Umar: {umar}"</span>)<br><span class='kw'>if</span> umar >= <span class='num'>18</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='fn'>print</span>(<span class='str'>"Adult"</span>)<br><span class='kw'>else</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='fn'>print</span>(<span class='str'>"Minor"</span>)</div></div><div class='tip'>Python mein <strong>indentation (spaces)</strong> se blocks define hote hain — zaroori hai!</div><div class='warn'>Termux mein run karo: <code>python3 filename.py</code></div>`},
+{title:"Functions & <span style='color:#4ade80'>Lists</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>FUNCTIONS</div><p><strong>def</strong> se function banate hain. <strong>List</strong> = [] mein multiple values store karo.</p></div><div class='cw'><div class='ch'><span>functions.py</span></div><div class='cb'><span class='kw'>def</span> <span class='fn'>greet</span>(naam):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>return</span> <span class='str'>f"Namaste, {naam}!"</span><br><br>bots = [<span class='str'>"Zara"</span>, <span class='str'>"MilteHai"</span>]<br>bots.<span class='fn'>append</span>(<span class='str'>"NewBot"</span>)<br><span class='fn'>print</span>(<span class='fn'>len</span>(bots))  <span class='cm'># 3</span><br><span class='fn'>print</span>(bots[-<span class='num'>1</span>])   <span class='cm'># "NewBot"</span></div></div>`},
+{title:"Dict & <span style='color:#4ade80'>Bot Logic</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>DICT & BOT</div><p><strong>Dictionary</strong> = {key: value}. Bot mein user data store karne ke liye use hoti hai.</p></div><div class='cw'><div class='ch'><span>bot-handler.py</span></div><div class='cb'><span class='kw'>def</span> <span class='fn'>handle</span>(text):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>if</span> text == <span class='str'>"/start"</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>return</span> <span class='str'>"Namaste! Main Zara hoon 🌸"</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>elif</span> text == <span class='str'>"/help"</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>return</span> <span class='str'>"Commands: /start /help"</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>else</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>return</span> <span class='str'>f"Tumne kaha: {text}"</span><br><br><span class='fn'>print</span>(<span class='fn'>handle</span>(<span class='str'>"/start"</span>))</div></div>`}
+],qb:"python"},
+cpp:{color:"#f472b6",badge:"C++",sections:[
+{title:"C++ <span style='color:#f472b6'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>C++ = <strong>fast aur powerful</strong>. Games, OS, browsers — sab C++. Har line mein <strong>semicolon (;)</strong> zaroori.</p></div><div class='cw'><div class='ch'><span>hello.cpp</span></div><div class='cb'><span class='tg'>#include</span> <span class='vl'>&lt;iostream&gt;</span><br><span class='kw'>using namespace</span> std;<br><span class='kw'>int</span> <span class='fn'>main</span>() {<br>&nbsp;&nbsp;&nbsp;&nbsp;cout &lt;&lt; <span class='str'>"Namaste!"</span> &lt;&lt; endl;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>int</span> umar = <span class='num'>16</span>;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>string</span> naam = <span class='str'>"Shoav"</span>;<br>&nbsp;&nbsp;&nbsp;&nbsp;cout &lt;&lt; naam &lt;&lt; <span class='str'>" - "</span> &lt;&lt; umar &lt;&lt; endl;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>return</span> <span class='num'>0</span>;<br>}</div></div><div class='warn'>C++ mein type declare zaroori — int, string, float. Python jaisa auto nahi!</div>`},
+{title:"Loops & <span style='color:#f472b6'>Functions</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>LOOPS</div><p>C++ mein <strong>for, while, do-while</strong> loops. Function mein return type batana zaroori.</p></div><div class='cw'><div class='ch'><span>loops.cpp</span></div><div class='cb'><span class='kw'>for</span> (<span class='kw'>int</span> i=<span class='num'>0</span>; i&lt;<span class='num'>5</span>; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;cout &lt;&lt; i &lt;&lt; endl;<br>}<br><br><span class='kw'>int</span> <span class='fn'>add</span>(<span class='kw'>int</span> a, <span class='kw'>int</span> b) { <span class='kw'>return</span> a+b; }<br>cout &lt;&lt; <span class='fn'>add</span>(<span class='num'>5</span>, <span class='num'>3</span>); <span class='cm'>// 8</span></div></div>`},
+{title:"Arrays & <span style='color:#f472b6'>Classes</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>OOP</div><p>C++ mein array ka <strong>size pehle se batana</strong> padta. Classes se OOP karte hain.</p></div><div class='cw'><div class='ch'><span>class.cpp</span></div><div class='cb'><span class='kw'>class</span> <span class='fn'>Bot</span> {<br><span class='kw'>public</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;string naam;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>int</span> users;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>void</span> <span class='fn'>info</span>() {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cout &lt;&lt; naam &lt;&lt; <span class='str'>": "</span> &lt;&lt; users &lt;&lt; endl;<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>};<br>Bot zara;<br>zara.naam = <span class='str'>"Zara Bot"</span>;<br>zara.users = <span class='num'>100</span>;<br>zara.<span class='fn'>info</span>();</div></div>`}
+],qb:"cpp"},
+java:{color:"#f97316",badge:"Java",sections:[
+{title:"Java <span style='color:#f97316'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>Java = <strong>Write Once, Run Anywhere</strong>. Android apps, enterprise software — sab Java. Strict typed language hai.</p></div><div class='cw'><div class='ch'><span>Hello.java</span></div><div class='cb'><span class='kw'>public class</span> <span class='fn'>Hello</span> {<br>&nbsp;&nbsp;<span class='kw'>public static void</span> <span class='fn'>main</span>(String[] args) {<br>&nbsp;&nbsp;&nbsp;&nbsp;System.out.<span class='fn'>println</span>(<span class='str'>"Namaste!"</span>);<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class='kw'>int</span> umar = <span class='num'>16</span>;<br>&nbsp;&nbsp;&nbsp;&nbsp;String naam = <span class='str'>"Shoav"</span>;<br>&nbsp;&nbsp;&nbsp;&nbsp;System.out.<span class='fn'>println</span>(naam+<span class='str'>" - "</span>+umar);<br>&nbsp;&nbsp;}<br>}</div></div><div class='warn'>Java mein file naam aur class naam same hona chahiye!</div>`},
+{title:"OOP <span style='color:#f97316'>Java Mein</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>OOP</div><p>Java ek <strong>pure OOP language</strong> hai — sab class ke andar hota hai.</p></div><div class='cw'><div class='ch'><span>Bot.java</span></div><div class='cb'><span class='kw'>public class</span> <span class='fn'>Bot</span> {<br>&nbsp;&nbsp;<span class='kw'>private</span> String naam;<br>&nbsp;&nbsp;<span class='kw'>public</span> <span class='fn'>Bot</span>(String naam) { <span class='kw'>this</span>.naam=naam; }<br>&nbsp;&nbsp;<span class='kw'>public void</span> <span class='fn'>info</span>() {<br>&nbsp;&nbsp;&nbsp;&nbsp;System.out.<span class='fn'>println</span>(naam);<br>&nbsp;&nbsp;}<br>}<br>Bot zara = <span class='kw'>new</span> <span class='fn'>Bot</span>(<span class='str'>"Zara"</span>);<br>zara.<span class='fn'>info</span>();</div></div>`},
+{title:"Exceptions & <span style='color:#f97316'>Collections</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>EXCEPTIONS</div><p>Errors handle karne ke liye <strong>try-catch</strong>. ArrayList Python list jaisa hai.</p></div><div class='cw'><div class='ch'><span>exception.java</span></div><div class='cb'><span class='kw'>import</span> java.util.ArrayList;<br>ArrayList&lt;String&gt; bots = <span class='kw'>new</span> ArrayList&lt;&gt;();<br>bots.<span class='fn'>add</span>(<span class='str'>"Zara"</span>);<br><span class='kw'>try</span> {<br>&nbsp;&nbsp;<span class='kw'>int</span> r = <span class='num'>10</span>/<span class='num'>0</span>;<br>} <span class='kw'>catch</span> (Exception e) {<br>&nbsp;&nbsp;System.out.<span class='fn'>println</span>(<span class='str'>"Error: "</span>+e.<span class='fn'>getMessage</span>());<br>} <span class='kw'>finally</span> {<br>&nbsp;&nbsp;System.out.<span class='fn'>println</span>(<span class='str'>"Hamesha chalega!"</span>);<br>}</div></div>`}
+],qb:"java"},
+sql:{color:"#22d3ee",badge:"SQL",sections:[
+{title:"SQL <span style='color:#22d3ee'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>SQL = <strong>Structured Query Language</strong>. Database se data lena, daalna, update, delete — sab SQL se. Har website mein ek database hota hai!</p></div><div class='cw'><div class='ch'><span>queries.sql</span></div><div class='cb'><span class='cm'>-- Sab select karo</span><br><span class='kw'>SELECT</span> * <span class='kw'>FROM</span> users;<br><br><span class='cm'>-- Filter</span><br><span class='kw'>SELECT</span> naam <span class='kw'>FROM</span> users <span class='kw'>WHERE</span> city=<span class='str'>'Gangapur'</span>;<br><br><span class='cm'>-- Add karo</span><br><span class='kw'>INSERT INTO</span> users (naam) <span class='kw'>VALUES</span> (<span class='str'>'Shoav'</span>);<br><br><span class='cm'>-- Update</span><br><span class='kw'>UPDATE</span> users <span class='kw'>SET</span> city=<span class='str'>'Jaipur'</span> <span class='kw'>WHERE</span> naam=<span class='str'>'Shoav'</span>;</div></div>`},
+{title:"Joins & <span style='color:#22d3ee'>Groups</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>JOINS</div><p>Do tables milana — <strong>JOIN</strong>. Same values group karna — <strong>GROUP BY</strong>.</p></div><div class='cw'><div class='ch'><span>joins.sql</span></div><div class='cb'><span class='cm'>-- INNER JOIN</span><br><span class='kw'>SELECT</span> users.naam, orders.product<br><span class='kw'>FROM</span> users<br><span class='kw'>INNER JOIN</span> orders <span class='kw'>ON</span> users.id=orders.user_id;<br><br><span class='cm'>-- GROUP BY</span><br><span class='kw'>SELECT</span> city, <span class='fn'>COUNT</span>(*) as total<br><span class='kw'>FROM</span> users<br><span class='kw'>GROUP BY</span> city<br><span class='kw'>ORDER BY</span> total <span class='kw'>DESC</span>;</div></div>`},
+{title:"Keys & <span style='color:#22d3ee'>Indexes</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>KEYS</div><p><strong>PRIMARY KEY</strong> = unique identifier. <strong>FOREIGN KEY</strong> = doosri table ka reference. <strong>INDEX</strong> = speed badhata hai.</p></div><div class='cw'><div class='ch'><span>create.sql</span></div><div class='cb'><span class='kw'>CREATE TABLE</span> users (<br>&nbsp;&nbsp;id <span class='kw'>INT PRIMARY KEY AUTO_INCREMENT</span>,<br>&nbsp;&nbsp;naam <span class='kw'>VARCHAR</span>(<span class='num'>100</span>) <span class='kw'>NOT NULL</span>,<br>&nbsp;&nbsp;email <span class='kw'>VARCHAR</span>(<span class='num'>200</span>) <span class='kw'>UNIQUE</span>,<br>&nbsp;&nbsp;city <span class='kw'>VARCHAR</span>(<span class='num'>50</span>)<br>);<br><span class='kw'>CREATE INDEX</span> idx_city <span class='kw'>ON</span> users(city);</div></div>`}
+],qb:"sql"},
+bash:{color:"#a78bfa",badge:"Bash",sections:[
+{title:"Bash <span style='color:#a78bfa'>Basics</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>Bash = <strong>terminal ki language</strong>. Termux use karta hai — Bash commands se bots deploy karte hain, files manage karte hain!</p></div><div class='cw'><div class='ch'><span>terminal</span></div><div class='cb'><span class='cm'># Directory</span><br>pwd &nbsp;<span class='cm'># current folder</span><br>ls &nbsp;&nbsp;<span class='cm'># files list</span><br>cd myproject &nbsp;<span class='cm'># folder mein jao</span><br><br><span class='cm'># Files</span><br>mkdir myproject &nbsp;<span class='cm'># folder banao</span><br>touch hello.py &nbsp;&nbsp;<span class='cm'># file banao</span><br>cat hello.py &nbsp;&nbsp;&nbsp;&nbsp;<span class='cm'># content dekho</span><br>rm file.txt &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='cm'># delete</span></div></div><div class='tip'>Ye sab Termux mein try karo!</div>`},
+{title:"Scripts & <span style='color:#a78bfa'>Variables</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>SCRIPTING</div><p>Bash scripts se <strong>automated tasks</strong> likh sakte ho. Variable mein = ke saath koi space nahi!</p></div><div class='cw'><div class='ch'><span>script.sh</span></div><div class='cb'><span class='cm'>#!/bin/bash</span><br>naam=<span class='str'>"Shoav"</span> &nbsp;<span class='cm'># no spaces!</span><br>echo <span class='str'>"Naam: $naam"</span><br><br><span class='kw'>if</span> [ $umar -ge <span class='num'>18</span> ]; <span class='kw'>then</span><br>&nbsp;&nbsp;echo <span class='str'>"Adult"</span><br><span class='kw'>fi</span><br><br><span class='kw'>for</span> i <span class='kw'>in</span> {1..5}; <span class='kw'>do</span><br>&nbsp;&nbsp;echo <span class='str'>"$i"</span><br><span class='kw'>done</span></div></div>`},
+{title:"Pipes & <span style='color:#a78bfa'>Power</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>POWER</div><p>Pipe (|) se ek command ka output doosre ko do. Grep se search. chmod se permission.</p></div><div class='cw'><div class='ch'><span>power.sh</span></div><div class='cb'><span class='cm'># Pipe</span><br>ls -la | grep .py<br>cat file.txt | wc -l<br><br><span class='cm'># Search</span><br>grep <span class='str'>"error"</span> log.txt<br><br><span class='cm'># Permission + run</span><br>chmod +x deploy.sh<br>./deploy.sh<br><br><span class='cm'># Termux packages</span><br>pkg install python nodejs git</div></div><div class='tip'>Bash script se ek command mein git pull, pip install, bot start — sab ho sakta hai!</div>`}
+],qb:"bash"},
+logic:{color:"#6366f1",badge:"Logic",sections:[
+{title:"Pattern <span style='color:#6366f1'>Recognition</span>",badge:"LESSON 01",content:`<div class='ic'><div class='lb'>CONCEPT</div><p>Coding mein <strong>logic sabse important</strong> hai — language koi bhi ho.<br><br>Patterns, puzzles, step-by-step thinking — problem solving ke liye zaroori hain.</p></div><div class='ic'><div class='lb'>PATTERNS</div><p><strong>2,4,6,8,?</strong> → +2 → answer: <strong>10</strong><br><strong>1,2,4,8,?</strong> → ×2 → answer: <strong>16</strong><br><strong>1,1,2,3,5,8,?</strong> → Fibonacci → <strong>13</strong></p></div><div class='tip'>Har pattern mein <strong>rule dhundho</strong> — ek baar rule mila toh agla number obvious ho jaata hai.</div>`},
+{title:"Code <span style='color:#6366f1'>Output Logic</span>",badge:"LESSON 02",content:`<div class='ic'><div class='lb'>CODE READING</div><p>Code chalaye bina output batana — ye skill <strong>interview mein bahut kaam aati hai!</strong></p></div><div class='cw'><div class='ch'><span>output.js</span></div><div class='cb'><span class='kw'>let</span> x = <span class='num'>5</span>;<br><span class='kw'>let</span> y = x++;  <span class='cm'>// y=5, phir x=6</span><br>console.log(x, y);  <span class='cm'>// 6 5</span><br><br><span class='kw'>for</span>(<span class='kw'>let</span> i=<span class='num'>0</span>; i&lt;<span class='num'>5</span>; i+=<span class='num'>2</span>) {<br>&nbsp;&nbsp;console.log(i);  <span class='cm'>// 0, 2, 4</span><br>}<span class='cm'>// 3 baar chalega</span></div></div><div class='warn'>x++ = pehle use karo, phir badhao. ++x = pehle badhao, phir use karo.</div>`},
+{title:"Real Life <span style='color:#6366f1'>Puzzles</span>",badge:"LESSON 03",content:`<div class='ic'><div class='lb'>PUZZLES</div><p>Ye puzzles dimag ki exercises hain jo <strong>problem-solving improve</strong> karti hain.</p></div><div class='ic'><div class='lb'>3 SWITCHES PUZZLE</div><p>3 switches bahar, 3 bulbs alag kamre — <em>ek baar jaoge</em>.<br><br><strong>Solution:</strong><br>1. Switch 1 on — 10 min wait<br>2. Switch 1 off, Switch 2 on<br>3. Kamre mein jao<br><br>On = Switch 2 | Garam off = Switch 1 | Thanda off = Switch 3<br><br><em>Heat ka use kiya — outside the box!</em></p></div>`}
+],qb:"logic"}
+};
+
+// LESSON SYSTEM
+let CL=null,CS=0,TI=null;
+function openL(lang){CL=lang;CS=0;showPage('lesson');renderSec();}
+function renderSec(){
+  const L=LS[CL],S=L.sections[CS],total=L.sections.length;
+  document.getElementById('lh').textContent=L.badge;
+  document.getElementById('ls').textContent=`Lesson ${CS+1} of ${total}`;
+  const qb=QB[L.qb],sh=shuffleA([...qb]),sq=sh.slice(0,5);
+  let qH=`<div style="padding:0 16px;margin-top:4px"><div style="font-size:0.62rem;font-family:JetBrains Mono,monospace;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">📝 QUIZ — ${sq.length} SAWAL</div>`;
+  sq.forEach((q,i)=>{
+    const so=shuffleWI(q.opts),ci=so.findIndex(o=>o.oi===q.ans);
+    qH+=`<div class="qw"><div class="qn">Q${i+1} <span class="diff ${q.diff}">${q.diff.toUpperCase()}</span></div><div class="qq">${q.q}</div><div class="qo" id="qo${i}">`;
+    so.forEach((op,j)=>{qH+=`<button class="ob2" onclick="chkA(this,${j===ci},${i})">${op.text}</button>`;});
+    qH+=`</div><div class="qf" id="qf${i}"></div></div>`;
+  });
+  qH+='</div>';
+  document.getElementById('lb').innerHTML=`<div class="lc"><div class="sb" style="background:rgba(99,102,241,0.1);color:${L.color}">${S.badge}</div><div class="st">${S.title}</div>${S.content}</div>`+qH;
+  const prev=document.getElementById('npb'),next=document.getElementById('nnb');
+  prev.disabled=CS===0;
+  if(CS===total-1){next.textContent='✓ Complete!';next.style.background='linear-gradient(135deg,#4ade80,#22d3ee)';}
+  else{next.textContent='Aage →';next.style.background='linear-gradient(135deg,var(--accent),var(--accent2))';}
+  setTimeout(()=>{
+    document.querySelectorAll('.ce').forEach(ed=>{
+      const id=ed.id;
+      if(id.startsWith('ed-js-'))rJS(parseInt(id.split('-')[2]));
+      else{const p=id.split('-');rHTML(p[1],parseInt(p[2]));}
+    });
+  },400);
+}
+function lNav(d){const L=LS[CL],ns=CS+d;if(ns<0)return;if(ns>=L.sections.length){saveProg(CL,100);goHome();return;}CS=ns;renderSec();window.scrollTo(0,0);}
+function chkA(btn,ok,qi){
+  const opts=document.querySelectorAll(`#qo${qi} .ob2`);opts.forEach(o=>o.disabled=true);
+  const fb=document.getElementById(`qf${qi}`);
+  if(ok){btn.classList.add('correct');fb.textContent='✅ Bilkul sahi! Shabash! 🔥';fb.className='qf show ok';}
+  else{btn.classList.add('wrong');fb.textContent='❌ Galat — sahi dhundho!';fb.className='qf show fail';setTimeout(()=>{opts.forEach(o=>{o.disabled=false;o.classList.remove('wrong','correct');});fb.className='qf';},1500);}
+}
+
+// EDITORS
+function rHTML(lang,idx){
+  const ed=document.getElementById(`ed-${lang}-${idx}`),pv=document.getElementById(`pv-${lang}-${idx}`);
+  if(!ed||!pv)return;
+  const doc=pv.contentDocument||pv.contentWindow.document;
+  doc.open();doc.write(ed.value);doc.close();
+  setTimeout(()=>{try{pv.style.height=Math.max(70,doc.body.scrollHeight+16)+'px';}catch(e){}},300);
+}
+function rJS(idx){
+  const ed=document.getElementById(`ed-js-${idx}`),out=document.getElementById(`oj-${idx}`);
+  if(!ed||!out)return;
+  const logs=[];const fc={log:(...a)=>logs.push(a.map(x=>typeof x==='object'?JSON.stringify(x):String(x)).join(' '))};
+  try{new Function('console',ed.value)(fc);out.style.color='var(--green)';out.textContent=logs.join('\n')||'(Koi output nahi)';}
+  catch(e){out.style.color='var(--red)';out.textContent='❌ Error: '+e.message;}
+}
+
+// TEST
+let TQ=[],UA={};
+function startTest(){
+  let pool=[];Object.keys(QB).forEach(l=>QB[l].forEach(q=>pool.push({...q,lang:l})));
+  pool=shuffleA(pool);TQ=[];const lc={};Object.keys(QB).forEach(l=>lc[l]=0);
+  const mp=Math.ceil(25/Object.keys(QB).length);
+  for(let q of pool){if((lc[q.lang]||0)<mp){const so=shuffleWI(q.opts);const ci=so.findIndex(o=>o.oi===q.ans);TQ.push({...q,so,ci});lc[q.lang]=(lc[q.lang]||0)+1;}if(TQ.length>=25)break;}
+  UA={};showPage('test');renderTest();
+}
+function renderTest(){
+  const lc2={html:'#f97316',css:'#3b82f6',js:'#fbbf24',python:'#4ade80',cpp:'#f472b6',java:'#f97316',sql:'#22d3ee',bash:'#a78bfa',logic:'#6366f1'};
+  let h='';TQ.forEach((q,i)=>{h+=`<div class="tq"><div class="tm"><span class="tn">Q${i+1} <span class="diff ${q.diff}">${q.diff.toUpperCase()}</span></span><span class="tl" style="background:${lc2[q.lang]}22;color:${lc2[q.lang]}">${q.lang.toUpperCase()}</span></div><div class="tqq">${q.q}</div><div class="to">`;q.so.forEach((op,j)=>{h+=`<button class="to2" id="to-${i}-${j}" onclick="selA(${i},${j})">${op.text}</button>`;});h+=`</div></div>`;});
+  document.getElementById('tqs').innerHTML=h;updTS();
+}
+function selA(qi,oi){if(UA[qi]!==undefined)document.getElementById(`to-${qi}-${UA[qi]}`)?.classList.remove('sel');UA[qi]=oi;document.getElementById(`to-${qi}-${oi}`)?.classList.add('sel');updTS();}
+function updTS(){const a=Object.keys(UA).length;document.getElementById('ta').textContent=a;document.getElementById('tr2').textContent=25-a;}
+function submitTest(){showPage('checking');startTimer();}
+function startTimer(){
+  let t=60;const circ=document.getElementById('tCirc'),nEl=document.getElementById('tNum'),dEl=document.getElementById('dots');let dc=0;
+  circ.style.strokeDashoffset=0;
+  TI=setInterval(()=>{t--;nEl.textContent=t;circ.style.strokeDashoffset=339*(1-t/60);dc=(dc+1)%4;dEl.textContent='.'.repeat(dc+1);if(t<=0){clearInterval(TI);showResult();}},1000);
+}
+function showResult(){
+  let tot=0;const lco={},lto={};Object.keys(QB).forEach(l=>{lco[l]=0;lto[l]=0;});
+  TQ.forEach((q,i)=>{lto[q.lang]=(lto[q.lang]||0)+1;if(UA[i]!==undefined&&UA[i]===q.ci){tot++;lco[q.lang]=(lco[q.lang]||0)+1;}});
+  const pct=Math.round((tot/TQ.length)*100);
+  let g,em,gc;
+  if(pct>=90){g='A+ 🏆';em='🏆';gc='var(--green)';}else if(pct>=75){g='A 🎉';em='🎉';gc='var(--accent2)';}else if(pct>=60){g='B 👍';em='😊';gc='var(--yellow)';}else if(pct>=40){g='C 📚';em='🤔';gc='var(--orange)';}else{g='D — Aur Practice Karo!';em='💪';gc='var(--red)';}
+  document.getElementById('rEmoji').textContent=em;
+  document.getElementById('rScore').innerHTML=`<span style="color:${gc}">${tot}</span><span style="color:var(--muted2);font-size:1.4rem">/25</span>`;
+  document.getElementById('rGrade').textContent=g;document.getElementById('rGrade').style.cssText=`background:${gc}22;color:${gc};border:1px solid ${gc}44`;
+  const lc2={html:'#f97316',css:'#3b82f6',js:'#fbbf24',python:'#4ade80',cpp:'#f472b6',java:'#f97316',sql:'#22d3ee',bash:'#a78bfa',logic:'#6366f1'};
+  let bH='';Object.keys(lco).forEach(l=>{if(!lto[l])return;const p=Math.round((lco[l]/lto[l])*100);bH+=`<div class="br"><div class="bl" style="color:${lc2[l]}">${l.toUpperCase()}</div><div class="bbw"><div class="bb" style="width:${p}%;background:${lc2[l]}"></div></div><div class="bsc">${lco[l]}/${lto[l]}</div></div>`;});
+  document.getElementById('rBreak').innerHTML=bH;
+  let aH='';TQ.forEach((q,i)=>{const ua=UA[i],ok=ua!==undefined&&ua===q.ci,ct=q.so[q.ci].text,ut=ua!==undefined?q.so[ua].text:'Answer nahi diya';aH+=`<div class="ai2"><div class="aq">${ok?'✅':'❌'} Q${i+1}: ${q.q}</div><div class="ar">${!ok?`<span class="ac wrong">Tumhara: ${ut}</span>`:''}<span class="ac ${ok?'correct':'right'}">Sahi: ${ct}</span></div></div>`;});
+  document.getElementById('rAns').innerHTML=aH;
+  showPage('result');
+  if(CU&&UP){const nb=Math.max(UP.bestScore||0,pct);UP.bestScore=nb;UP.testCount=(UP.testCount||0)+1;db.collection('users').doc(CU.uid).update({bestScore:nb,testCount:UP.testCount});}
+  window._rt=`Coding by Shoav — Test Result\n\nScore: ${tot}/25 (${pct}%)\nGrade: ${g}\n\nLanguage-wise:\n${Object.keys(lco).map(l=>`${l.toUpperCase()}: ${lco[l]}/${lto[l]}`).join('\n')}\n\nKeep coding! 🚀`;
+}
+function copyRes(){navigator.clipboard?.writeText(window._rt).then(()=>alert('Copy ho gaya! 📋')).catch(()=>alert('Screenshot lo!'));}
+function retryT(){clearInterval(TI);startTest();}
+
+// AI TUTOR
+const GK="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";
+let aiH=[];
+function aiKD(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}}
+async function sendAI(){
+  const inp=document.getElementById('aiIn'),msg=inp.value.trim();if(!msg)return;inp.value='';
+  addAIM('user',msg);aiH.push({role:'user',content:msg});
+  const tid=addTyping();
+  try{
+    const un=UP?.name?.split(' ')[0]||'bhai';
+    const sp=UP?.lang==='en'?`You are a friendly coding tutor for Coding by Shoav. Help with all programming languages and logic. Be concise. User: ${un}.`:`Tu Coding by Shoav ka AI Tutor hai. Hinglish mein baat kar — simple aur clear. HTML, CSS, JS, Python, C++, Java, SQL, Bash, Logic — sab mein help kar. User ka naam ${un} hai.`;
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${GK}`},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'system',content:sp},...aiH.slice(-10)],max_tokens:600,temperature:0.7})});
+    const data=await r.json();const reply=data.choices?.[0]?.message?.content||'Kuch problem aayi, dobara try karo!';
+    removeTyping(tid);addAIM('bot',reply);aiH.push({role:'assistant',content:reply});
+  }catch(e){removeTyping(tid);addAIM('bot','❌ Network error — internet check karo.');}
+}
+function addAIM(role,text){const m=document.getElementById('aiM');const d=document.createElement('div');d.className=`aimsg ${role}`;const f=text.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\n/g,'<br>');d.innerHTML=`<div class="aib">${f}</div>`;m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function addTyping(){const m=document.getElementById('aiM');const id='t'+Date.now();const d=document.createElement('div');d.className='aimsg bot';d.id=id;d.innerHTML=`<div class="aib"><div class="aty"><span></span><span></span><span></span></div></div>`;m.appendChild(d);m.scrollTop=m.scrollHeight;return id;}
+function removeTyping(id){document.getElementById(id)?.remove();}
+
+// UTILS
+function shuffleA(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function shuffleWI(arr){return shuffleA(arr.map((text,oi)=>({text,oi})));}
+</script>
+</body>
+</html>
